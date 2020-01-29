@@ -18,11 +18,19 @@
 </div>
 
 <script>
+// Import getters,actions, mutations for store (cli)
+// import { mapGetters, mapMutations, mapActions } from 'vuex'
+
 // Vuex part
 const store = new Vuex.Store({
 	state: {
 		message: 'Hello Space from Vuex',
-		count: 0
+		count: 0,
+		posts: [
+			{id: 1, title: "Title 1"},
+			{id: 2, title: "Title 2"},
+			{id: 3, title: "Title 3"}
+		]
 	},
 	getters: {
 		message(state) {
@@ -30,20 +38,38 @@ const store = new Vuex.Store({
 		},
 		counter(state) {
 			return state.count;
+		},
+		posts(state) {
+			return state.posts;
+		},
+		postid: (state) => (id) => {
+			return state.posts.find(p => p.id === id)
 		}
 	},
 	actions: {
 		// Asynch
 		async increment(state, val) {
-			// Async load data form server here
+			// Async load data form server here			
 			// await fetch("get data").then("update val")
+
+			// Call mutation:
 			state.commit('increment', val);
+		},
+		async decrement(state, val) {
+			// Async load data form server here			
+			// await fetch("get data").then("update val")
+
+			// Call mutation:
+			state.commit('decrement', val);
 		}
 	},
 	mutations: {
 		// Synch
 		increment(state, val) {
 			state.count += parseInt(val);
+		},
+		decrement(state, val) {
+			state.count -= parseInt(val);
 		}
 	}
 });
@@ -53,11 +79,14 @@ const Foo = { template: '<div>foo <button-counter /> </div>' }
 const Bar = { 
 	data () {
 		return {
-			welcome: "Hello Space"
+			welcome: "Hello Space",
+			delta: 1
 		}
 	},
 	// For template variables
 	computed: {
+		// Get getters from store
+		// ...mapGetters(['message','counter']),
 		message() {
 			// return store.state.message;
 			// With getters
@@ -69,14 +98,28 @@ const Bar = {
 	},
 	// For template actions
 	methods: {
-		pushnow() {
+		// Load actions: store.dispatch('increment', 1);
+		// ...mapActions(['decrement']),
+		// Or mutations: store.commit("increment", 1);
+		// ...mapMutations(['increment','decrement']),
+
+		pushup(val = 1) {
+			// Int values
+			val = parseInt(val);
+
+			// Synchronous, mutations call:
+			// store.commit("increment", val);
+			
+			// Asynchronous and synchronous, actions call:
+			store.dispatch('increment', val);
+
+			// Log to browser console (package.json Eslint: no-pass: off)
 			console.log("Pressed!");
-			
-			// Synch
-			// store.commit("increment", 1);
-			
-			// Async
-			store.dispatch('increment', 1);
+		},
+		pushdown(val = 1) {
+			// Int values
+			val = parseInt(val);
+			store.dispatch('decrement', val);			
 		}
 	},	
 	watch: {
@@ -92,7 +135,7 @@ const Bar = {
 		// `this` points to the app instance
 		console.log('a is: ' + this.o1)
 	},
-	template: '<div> <h1> {{ welcome }} </h1> <h2> {{ message }} </h2> <h3> {{ count }} </h3> <button @click="pushnow"> Add +1</button> </div>' 
+	template: '<div> <h1> {{ welcome }} </h1> <h2> {{ message }} </h2> <h3> {{ count }} </h3> <input v-model="delta" type="number" placeholder="Number"> <button @click="pushup(delta)"> Add +1</button> <button @click="pushdown(delta)"> Add -1</button> </div>' 
 }
 
 // Add data
@@ -102,6 +145,8 @@ const routes = [
   { path: '/foo', component: Foo },
   { path: '/bar', component: Bar }
 ]
+
+Vue.use(VueRouter)
 
 const router = new VueRouter({
   routes
