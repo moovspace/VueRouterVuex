@@ -22,9 +22,9 @@
 // import { mapGetters, mapMutations, mapActions } from 'vuex'
 
 // Vuex part
-const store = new Vuex.Store({
+const moduleA = {
 	state: {
-		message: 'Hello Space from Vuex',
+		message: '<span style="color: #5c5">Hello Space from Vuex </span>',
 		count: 0,
 		posts: [
 			{id: 1, title: "Title 1"},
@@ -72,14 +72,61 @@ const store = new Vuex.Store({
 			state.count -= parseInt(val);
 		}
 	}
+}
+
+// Create store
+const store = new Vuex.Store({
+	modules: {
+		moduleA
+	}
 });
 
-// Router vue part
+// Add dynamic module after the store has been created
+// moduleB state: store.state.moduleB
+// moduleB variable: store.state.moduleB.text
+store.registerModule('moduleB', {
+	state: {
+		text: '</br>Dynamic moduleB state.text',
+		count: 0,
+	},
+	getters: {},
+	actions: {},
+	mutations: {}
+})
+
+// Components
+const Component1 = Vue.component('button-counter', {
+  data: function () {
+    return {
+      count: 0
+    }
+  },
+  template: '<button v-on:click="count++">You clicked me {{ count }} times.</button>'
+});
+
+const Component2 = Vue.component('base-checkbox', {
+  model: {
+    prop: 'checked',
+    event: 'change'
+  },
+  props: {
+    checked: Boolean
+  },
+  template: `
+    <input
+      type="checkbox"
+      v-bind:checked="checked"
+      v-on:change="$emit('change', $event.target.checked)"
+    >
+  `
+})
+
+// Router part with vuex
 const Foo = { template: '<div>foo <button-counter /> </div>' }
 const Bar = { 
 	data () {
 		return {
-			welcome: "Hello Space",
+			welcome: "Hello Space " + store.state.moduleB.text,
 			delta: 1
 		}
 	},
@@ -135,61 +182,29 @@ const Bar = {
 		// `this` points to the app instance
 		console.log('a is: ' + this.o1)
 	},
-	template: '<div> <h1> {{ welcome }} </h1> <h2> {{ message }} </h2> <h3> {{ count }} </h3> <input v-model="delta" type="number" placeholder="Number"> <button @click="pushup(delta)"> Add +1</button> <button @click="pushdown(delta)"> Add -1</button> </div>' 
+	template: '<div> <h1 v-html="welcome"> {{ welcome }} </h1> <h2 v-html="message"> {{ message }} </h2> <h3> {{ count }} </h3> <input v-model="delta" type="number" placeholder="Number"> <button @click="pushup(delta)">+</button> <button @click="pushdown(delta)">-</button> </div>' 
 }
 
 // Add data
 // Vue.set(app.o1, 'age', 27)
 
+// Routes
 const routes = [
   { path: '/foo', component: Foo },
   { path: '/bar', component: Bar }
 ]
 
+// Set router
 Vue.use(VueRouter)
 
 const router = new VueRouter({
   routes
 })
 
-
-// Component sample
-const Component1 = Vue.component('button-counter', {
-  data: function () {
-    return {
-      count: 0
-    }
-  },
-  template: '<button v-on:click="count++">You clicked me {{ count }} times.</button>'
-});
-
-const Component2 = Vue.component('base-checkbox', {
-  model: {
-    prop: 'checked',
-    event: 'change'
-
-  },
-  props: {
-    checked: Boolean
-  },
-  template: `
-    <input
-      type="checkbox"
-      v-bind:checked="checked"
-      v-on:change="$emit('change', $event.target.checked)"
-    >
-  `
-})
-
-/*
-components: {
-	'comp1': Component1,
-	'comp2': Component2
-}
-*/
-
+// Vue app
 const app = new Vue({
 	router,
+	// Import or create first
   	components: {
 		'comp1': Component1,
 		'comp2': Component2,		
@@ -200,8 +215,15 @@ const app = new Vue({
 </script>
 
 <style type="text/css">
-.router-link-active {
-  color: red;
+*{
+	box-sizing: border-box
 }
 
+.router-link-active {
+  color: red
+}
+
+input[type=number]{
+	padding: 5px
+}
 </style>
